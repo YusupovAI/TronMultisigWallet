@@ -54,7 +54,7 @@
     "angular-animate": "1.5.8",
     "angular-route": "1.5.8",
     "angular-touch": "1.5.8",
-    "angular-ui-bootstrap": "2.2.0",
+    "angular-ui-bootstrap": "2.5.6",
     "angular-ui-notification": "0.3.6",
     "body-parser": "1.17.1",
     "bootstrap": "3.3.7",

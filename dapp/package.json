@@ -79,7 +79,7 @@
     "ledgerco": "1.1.2",
     "moment": "2.17.0",
     "ngclipboard": "1.1.1",
-    "node-hid": "0.5.4",
+    "node-hid": "0.7.9",
     "spinkit": "1.2.5",
     "web3": "git+https://github.com/denisgranha/web3.js.git#7c26a69466c3217bc095ed8c797698bf6f1110fe",
     "web3-provider-engine": "git+https://github.com/denisgranha/provider-engine.git#compiled-subprovider"

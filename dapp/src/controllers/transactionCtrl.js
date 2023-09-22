@@ -12,7 +12,7 @@
       $scope.addressBook = JSON.parse(localStorage.getItem('addressBook') || '{}');
 
       // Get Ethereum Chain
-      Transaction.getEthereumChain().then(
+      Transaction.getTronChain().then(
         function (data) {
           $scope.chain = data.chain;
           $scope.etherscan = data.etherscan;

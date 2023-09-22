@@ -10,29 +10,11 @@
         };
 
         factory.webInitialized = function () {
-          return new Promise(function (resolve, reject) {
-            factory.reloadWeb3Provider(resolve, reject);
-          });
+          return new Promise(factory.reloadTronWeb);
         }
 
-        /**
-        * Asks Metamask to open its widget.
-        * Returns a callback call with the list of accounts or null in case the
-        * user rejects the approval request.
-        * @param callback, function (error, accounts)
-        */
-        factory.enableMetamask = function (callback) {
-          $window.ethereum.enable().then(function (accounts) {
-            factory.reloadWeb3Provider(null, callback);
-            // Convert to checksummed addresses
-            accounts = factory.toChecksumAddress(accounts);
-            // Set accounts and coinbase
-            factory.accounts = accounts;
-            factory.coinbase = accounts[0];
-            callback(null, accounts)
-          }).catch(function (error) {
-            callback(error, null)
-          });
+        factory.tronInitialized = function () {
+          return new Promise(factory.reloadTronWeb)
         };
 
         /**
@@ -44,127 +26,35 @@
           );
         };
 
-        /**
-        * Reloads web3 provider
-        * @param resolve, function (optional)
-        * @param reject, function (optional)
-        **/
-        factory.reloadWeb3Provider = function (resolve, reject) {
+        factory.isTronWebInjected = function () {
+          return true;
+        }
 
-          factory.accounts = [];
-          factory.coinbase = null;
-          var web3 = null;
-
-          // Legacy dapp browsers...
-          if ($window.web3 && !$window.ethereum) {
-            web3 = $window.web3;
-          }
-          // https://github.com/MetaMask/metamask-extension/blob/2f7d4494278ad809c1cc9fcc0d9438182003b22d/app/scripts/inpage.js#L101
-          else if ($window.ethereum) {
-            web3 = $window.ethereum;
-          }
-
-          if (!web3) {
-            reject('Web3 Provider not connected');
+        factory.reloadTronWeb = function (resolve, reject) {
+          factory.tronWeb = $window.tronWeb;
+          
+          if (!factory.tronWeb) {
+            reject('Tron provider not connected');
             return;
           }
 
-          // Ledger wallet
-          if (txDefault.wallet == "ledger") {
-            if (isElectron) {
-              factory.ledgerElectronSetup().then(function () {
-                if (resolve) {
-                  resolve()
-                }
-              }, function (e) {
-                if (reject) {
-                  reject(e)
-                }
-              })
+          factory.tronWeb.request(
+            {
+              method: 'tron_requestAccounts',
+              params: {
+                websiteName: 'example',
+              }
             }
-            else {
-              factory.ledgerSetup().then(function () {
-                if (resolve) {
-                  resolve()
-                }
-              }, function (e) {
-                if (reject) {
-                  reject(e)
-                }
-              })
-            }
-          }
-          else if (txDefault.wallet == "trezor") {
-            factory.trezorSetup();
-            if (resolve) {
+          ).then((response) => {
+            if (response.code == 200) {
               resolve();
+            } else {
+              reject(response.message);
             }
-          }
-          // injected web3 provider (Metamask, mist, etc)
-          else if (txDefault.wallet == "injected" && web3 && !isElectron) {
-            factory.web3 = web3.currentProvider !== undefined ? new MultisigWeb3(web3.currentProvider) : new MultisigWeb3(web3);
-            // Set accounts
-            // Convert to checksummed addresses
-            factory.web3.eth.getAccounts(function (e, accounts) {
-              if (e) {
-                throw e;
-              } else {
-                factory.accounts = factory.toChecksumAddress(accounts);
-                factory.coinbase = factory.accounts[0];
-              }
-              if (resolve) {
-                resolve();
-              }
-
-            });
-          }
-          else if (txDefault.wallet == 'lightwallet' && isElectron) {
-            factory.lightWalletSetup();
-            if (resolve) {
-              resolve();
-            }
-          }
-          else if (txDefault.wallet == 'remotenode') {
-            // Connect to Ethereum Node
-            // factory.web3 = new MultisigWeb3(new RpcSubprovider({
-            //   rpcUrl: txDefault.ethereumNode
-            // }));
-            factory.web3 = new MultisigWeb3(new MultisigWeb3.providers.HttpProvider(txDefault.ethereumNode));
-            // Check connection
-            factory.web3.net.getListening(function (e) {
-              if (e) {
-                Utils.dangerAlert("You are not connected to any node.");
-                if (reject) {
-                  reject();
-                }
-              }
-              else {
-                // Get accounts from remote node
-                factory.web3.eth.getAccounts(function (e, accounts) {
-                  if (e) {
-                    if (reject) {
-                      reject(e);
-                    }
-                  }
-                  else {
-                    // Set accounts
-                    // Convert to checksummed addresses
-                    accounts = factory.toChecksumAddress(accounts);
-                    factory.accounts = accounts;
-                    factory.coinbase = accounts[0];
-
-                    if (resolve) {
-                      resolve();
-                    }
-                  }
-                });
-              }
-            });
-          }
-          else if (resolve) {
-            resolve();
-          }
-        };
+          }, (reason) => {
+            reject(reason);
+          });
+        }
 
         /**
          * Converts an object to a checksummed address when possible.
@@ -337,30 +227,11 @@
         * Get ethereum accounts and update account list.
         */
         factory.updateAccounts = function (cb) {
-          return factory.web3.eth.getAccounts(
-            function (e, accounts) {
-              if (e) {
-                cb(e);
-              }
-              else {
-                // Convert to Checksummed addresses
-                accounts = factory.toChecksumAddress(accounts);
-                factory.accounts = accounts.length ? accounts : [];
-
-                if (factory.coinbase && factory.accounts.indexOf(factory.coinbase) != -1) {
-                  // same coinbase
-                }
-                else if (factory.accounts) {
-                  factory.coinbase = factory.accounts[0];
-                }
-                else {
-                  factory.coinbase = null;
-                }
-
-                cb(null, factory.accounts);
-              }
-            }
-          );
+          return factory.tronWeb.trx.getAccount().then((account) => {
+            factory.account = account;
+            factory.coinbase = account.address;
+            cb(factory.account);
+          });
         };
 
         // Open Info Modal

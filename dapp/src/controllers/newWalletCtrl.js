@@ -8,7 +8,7 @@
       $scope.owners = {};
       $scope.owners[Web3Service.coinbase] = {
         name: 'My account',
-        address: Web3Service.coinbase
+        address: Web3Service.tronWeb.address.fromHex(Web3Service.coinbase)
       };
 
       $scope.confirmations = 1;
@@ -22,23 +22,22 @@
       $scope.deployWallet = function () {
         Wallet.deployWithLimit(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e18'),
           function (e, contract) {
+            console.log('In function');
             if (e) {
               Utils.dangerAlert(e);
             }
             else {
-              if (!contract.address) {
-                $uibModalInstance.close();
-                // Execute transaction
-                Transaction.add({txHash: contract.transactionHash, callback: function (receipt) {
-                  // Save wallet
-                  Wallet.updateWallet({name: $scope.name, address: receipt.contractAddress, owners: $scope.owners});
-                  Utils.success("Wallet deployed");
-                  Transaction.update(contract.transactionHash, {multisig: receipt.contractAddress});
-                  Token.setDefaultTokens(receipt.contractAddress);
-                  callback();
-                }});
-                Utils.notification("Deployment transaction was sent.");
-              }
+              $uibModalInstance.close();
+              // Execute transaction
+              Transaction.add({txHash: contract.txid, callback: function (receipt) {
+                // Save wallet
+                Wallet.updateWallet({name: $scope.name, address: receipt.contract_address, owners: $scope.owners});
+                Utils.success("Wallet deployed");
+                Transaction.update(contract.txid, {multisig: receipt.contract_address});
+                Token.setDefaultTokens(receipt.contract_address);
+                callback();
+              }});
+              Utils.notification("Deployment transaction was sent.");
             }
           }
         );
@@ -70,7 +69,7 @@
                 {
                   txHash: tx,
                   callback: function(receipt){
-                    var walletAddress = Web3Service.toChecksumAddress(receipt.decodedLogs[0].events[1].value);
+                    var walletAddress = Web3Service.tronWeb.address.fromHex('41' + receipt.log[0].data.slice(64).replace(/^0*/, ''));
                     Utils.success("Wallet deployed");
                     Wallet.updateWallet({name: $scope.name, address: walletAddress, owners: $scope.owners});
                     Transaction.update(tx, {multisig: walletAddress});

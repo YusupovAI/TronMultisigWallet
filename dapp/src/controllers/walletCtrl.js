@@ -38,81 +38,64 @@
         );
 
         $scope.updateParams = function () {
-          $scope.batch = Web3Service.web3.createBatch();
           if ($scope.wallets) {
             // Init wallet balance of each wallet address
-            Object.keys($scope.wallets).map(function (address) {
-              $scope.batch.add(
-                Wallet.getBalance(
-                  address,
-                  function (e, balance) {
-                    if (!e && balance && $scope.wallets[address]) {
-                      $scope.$apply(function () {
-                        $scope.wallets[address].balance = balance;
-                      });
-                    }
+            Object.keys($scope.wallets).map((address) => {
+              Wallet.getBalance(
+                address,
+                function (e, balance) {
+                  if (!e && balance && $scope.wallets[address]) {
+                    $scope.$apply(function () {
+                      $scope.wallets[address].balance = balance;
+                    })
                   }
-                )
+                }
+              );
+              Wallet.getRequired(
+                address,
+                function (e, confirmations) {
+                  if ($scope.wallets[address] && confirmations && confirmations.gt(0)) {
+                    $scope.$apply(function () {
+                      $scope.wallets[address].confirmations = confirmations;
+                    });
+                  }
+                }
               );
 
-              $scope.batch.add(
-                Wallet.getRequired(
-                  address,
-                  function (e, confirmations) {
-                    if ($scope.wallets[address] && confirmations && confirmations.greaterThan(0)) {
-                      $scope.$apply(function () {
-                        $scope.wallets[address].confirmations = confirmations;
-                      });
-                    }
+              Wallet.getOwners(
+                address,
+                function (e, owners) {
+                  // $scope.wallets[address] is undefined
+                  // when deleting a wallet and executing
+                  // Wallet.getOwners in the meantime
+                  if ($scope.wallets[address]) {
+                    $scope.wallets[address].isOnChain = (!e && owners.length > 0);
                   }
-                )
+                }
               );
 
-              /**
-              * Get owners in order to verify whether or not the wallet
-              * was created using the current network
-              */
-              $scope.batch.add(
-                Wallet.getOwners(
-                  address,
-                  function (e, owners) {
-                    // $scope.wallets[address] is undefined
-                    // when deleting a wallet and executing
-                    // Wallet.getOwners in the meantime
-                    if ($scope.wallets[address]) {
-                      $scope.wallets[address].isOnChain = (!e && owners.length > 0);
-                    }
+              Wallet.getLimit(
+                address,
+                function (e, limit) {
+                  if (!e && limit && $scope.wallets[address]) {
+                    $scope.$apply(function () {
+                      $scope.wallets[address].limit = limit;
+                    });
                   }
-                )
+                }
               );
 
-              $scope.batch.add(
-                Wallet.getLimit(
-                  address,
-                  function (e, limit) {
-                    if (!e && limit && $scope.wallets[address]) {
-                      $scope.$apply(function () {
-                        $scope.wallets[address].limit = limit;
-                      });
-                    }
+              Wallet.calcMaxWithdraw(
+                address,
+                function (e, max) {
+                  if (!e && max && $scope.wallets[address]) {
+                    $scope.$apply(function () {
+                      $scope.wallets[address].maxWithdraw = max;
+                    });
                   }
-                )
-              );
-
-              $scope.batch.add(
-                Wallet.calcMaxWithdraw(
-                  address,
-                  function (e, max) {
-                    if (!e && max && $scope.wallets[address]) {
-                      $scope.$apply(function () {
-                        $scope.wallets[address].maxWithdraw = max;
-                      });
-                    }
-                  }
-                )
+                }
               );
             });
-            $scope.batch.execute();
           }
           else {
             $scope.totalItems = 0;

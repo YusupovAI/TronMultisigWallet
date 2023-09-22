@@ -465,7 +465,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
   $templateCache.put('src/partials/wallet.html',
     "<div class=\"page-header\">\n" +
     "  <h1>\n" +
-    "    {{wallet.name}} {{balance|ether}}\n" +
+    "    {{wallet.name}} {{balance|trx}}\n" +
     "  </h1>\n" +
     "  <h5 class=\"grey\">{{wallet.address}}</h5>\n" +
     "  <span class=\"btn btn-success\" ng-click=\"showSafeMigrationModal()\">Safe Multisig Migration</span>\n" +
@@ -691,7 +691,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "          </div>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          {{transactions[txId].value|ether}}\n" +
+    "          {{transactions[txId].value|trx}}\n" +
     "        </td>\n" +
     "        <td>\n" +
     "          <div class=\"text-center\" ng-show=\"!transactions[txId].dataDecoded.title\">\n" +
@@ -845,7 +845,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "          </div>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          <span value-or-dash-by-connectivity=\"{{wallet.balance|ether}}\">{{wallet.balance|ether}}</span>\n" +
+    "          <span value-or-dash-by-connectivity=\"{{wallet.balance|trx}}\">{{wallet.balance|trx}}</span>\n" +
     "          <button type=\"button\" disabled-if-no-accounts-or-wallet-available=\"{{wallet.address}}\"\n" +
     "            class=\"btn btn-default btn-sm pull-right\"\n" +
     "            ng-click=\"deposit(wallet)\">\n" +
@@ -861,7 +861,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "          </button>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          <span value-or-dash-by-connectivity=\"{{wallet.limit|ether}}\">{{wallet.limit|ether}}</span>\n" +
+    "          <span value-or-dash-by-connectivity=\"{{wallet.limit|trx}}\">{{wallet.limit|trx}}</span>\n" +
     "          <button type=\"button\" disabled-if-no-accounts-or-wallet-available=\"{{wallet.address}}\"\n" +
     "            class=\"btn btn-default btn-sm pull-right\"\n" +
     "            ng-click=\"setLimit(wallet)\">\n" +
@@ -869,7 +869,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "          </button>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          <span value-or-dash-by-connectivity=\"{{wallet.maxWithdraw|ether}}\">{{wallet.maxWithdraw|ether}}</span>\n" +
+    "          <span value-or-dash-by-connectivity=\"{{wallet.maxWithdraw|trx}}\">{{wallet.maxWithdraw|trx}}</span>\n" +
     "          <button type=\"button\" disabled-if-no-accounts-or-wallet-available=\"{{wallet.address}}\"\n" +
     "            class=\"btn btn-default btn-sm pull-right\"\n" +
     "            data-action=\"withdraw\"\n" +
@@ -2880,7 +2880,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "  <p>\n" +
     "    You can monitor existing wallets without an account management software but you cannot create new wallets or sign transactions.\n" +
     "  </p>\n" +
-    "  <p ngIf=\"metamaskInjected\">\n" +
+    "  <p ngIf=\"tronWebInjected\">\n" +
     "    <a href=\"#\" ng-click=\"openMetamaskWidgetAndClose()\">Unlock Metamask</a>\n" +
     "  </p>\n" +
     "</div>\n" +

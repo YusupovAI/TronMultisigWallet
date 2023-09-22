@@ -83,22 +83,22 @@
         }
       };
     })
-    .filter('ether', function () {
+    .filter('trx', function () {
       return function (num) {
         if (num) {
           var casted = new Web3().toBigNumber(num);
           if (casted.gt(0)) {
-            var ether = casted.div('1e18');
+            var ether = casted.div('1e6');
             if (ether.gt(1)) {
-              return ether.toPrecision(Math.floor(Math.log(ether.toNumber())/Math.log(10) + 3)).toString(10) + " ETH";
+              return ether.toPrecision(Math.floor(Math.log(ether.toNumber())/Math.log(10) + 3)).toString(10) + " TRX";
             }
             else {
-              return ether.toPrecision(2).toString() + " ETH";
+              return ether.toPrecision(2).toString() + " TRX";
             }
 
           }
           else {
-            return "0.00 ETH";
+            return "0.00 TRX";
           }
         }
         return null;

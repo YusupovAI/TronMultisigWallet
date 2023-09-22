@@ -181,7 +181,15 @@ var txDefault = {
     'privatenet': {
       name: 'Privatenet',
       address: '0xd79426bcee5b46fde413ededeb38364b3e666097'
-    }
+    },
+    'shasta': {
+      name: 'shasta',
+      address: '0x0',
+    },
+    'nile': {
+      name: 'nile',
+      address: '41adacd9cd8937db09b03ce2f8a9c371e10ddd5764',
+    },
   }
 };
 

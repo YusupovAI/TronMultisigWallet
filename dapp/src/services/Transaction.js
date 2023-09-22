@@ -10,25 +10,14 @@
           callbacks: {}
         };
 
-        function processReceipt(e, receipt) {
-          if (!e && receipt) {
-            receipt = Web3Service.toChecksumAddress(receipt);
-            receipt.decodedLogs = Wallet.decodeLogs(receipt.logs);
-            factory.update(receipt.transactionHash, { receipt: receipt });
-
-            // call callback if it has
-            if (factory.callbacks[receipt.transactionHash]) {
-              // Execute callback function
-              factory.callbacks[receipt.transactionHash](receipt);
-            }
-          }
-        }
-
-        function getTransactionInfo(e, info) {
-          if (!e && info) {
+        function getTransactionInfo(info) {
+          if (info) {
             // Convert info object to an object containing checksum addresses
-            info = Web3Service.toChecksumAddress(info);
-            factory.update(info.hash, { info: info });
+            // info = Web3Service.toChecksumAddress(info);
+            factory.update(info.id, { info: info });
+            if (factory.callbacks[info.id]) {
+              factory.callbacks[info.id](info);
+            }
           }
         }
 
@@ -41,7 +30,7 @@
         */
         factory.add = function (tx) {
           // Convert incoming object's addresses to checksummed ones
-          tx = Web3Service.toChecksumAddress(tx);
+          // tx = Web3Service.toChecksumAddress(tx);
           
           var transactions = factory.get();
           transactions[tx.txHash] = tx;
@@ -56,17 +45,16 @@
           }
           catch (e) {}
 
-          Web3Service.web3.eth.getTransaction(
-            tx.txHash,
-            getTransactionInfo
-          );
+          Web3Service.tronWeb.trx.getTransactionInfo(tx.txHash).then((info) => {
+            factory.update(info.id, {info: info});
+          });
         };
 
         factory.update = function (txHash, newObj) {
           var transactions = factory.get();
           // Convert incoming object's addresses to checksummed ones
-          newObj = Web3Service.toChecksumAddress(newObj);
-          txHash = Web3Service.toChecksumAddress(txHash);
+          // newObj = Web3Service.toChecksumAddress(newObj);
+          // txHash = Web3Service.toChecksumAddress(txHash);
           Object.assign(transactions[txHash], newObj);
           localStorage.setItem("transactions", JSON.stringify(transactions));
           factory.updates++;
@@ -277,37 +265,44 @@
         * calls callback after receipt is retrieved.
         */
         factory.checkReceipts = function () {
-          // Create batch object
-          var batch = Web3Service.web3.createBatch();
-
+          console.log('Checking');
           // Add transactions without receipt to batch request
           var transactions = factory.get();
           var txHashes = Object.keys(transactions);
 
           for (var i = 0; i < txHashes.length; i++) {
             var tx = transactions[txHashes[i]];
-            // Get transaction receipt
-            if (tx && !tx.receipt) {
-              batch.add(
-                Web3Service.web3.eth.getTransactionReceipt.request(txHashes[i], processReceipt)
-              );
-            }
             // Get transaction info
             if (tx && !tx.info) {
-              batch.add(
-                Web3Service.web3.eth.getTransaction.request(
-                  txHashes[i],
-                  getTransactionInfo
-                )
-              );
+              Web3Service.tronWeb.trx.getTransactionInfo(txHashes[i]).then(getTransactionInfo, (e) => {});
             }
           }
-
-          batch.execute();
         };
 
-        factory.getEthereumChain = function () {
+        factory.getTronChain = function () {
+          return new Promise(function (resolve, reject) {
+            Web3Service.tronWeb.trx.getBlock(0).then(function (block) {
+              var data = {};
+              if (block && block.blockID == "0000000000000000d698d4192c56cb6be724a558448e2684802de4d6cd8690dc") {
+                data.chain = "nile";
+                data.etherscan = "https://nile.tronscan.org";
+                data.walletFactoryAddress = txDefault.walletFactoryAddresses["nile"].address;
+              }
+              else if (block && block.blockID == "0000000000000000de1aa88295e1fcf982742f773e0419c5a9c134c994a9059e") {
+                data.chain = "shasta";
+                data.etherscan = "https://shasta.tronscan.org";
+                data.walletFactoryAddress = txDefault.walletFactoryAddresses["shasta"].address;
+              }
+              else if (block && block.blockID == "00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc") {
+                data.chain = "mainnet";
+                data.etherscan = "https://tronscan.org";
+                data.walletFactoryAddress = txDefault.walletFactoryAddresses["mainnet"].address;
+              }
+              resolve(data);
+            });
+          });
           return $q(function (resolve, reject) {
+            Web3Service.tronWeb.trx.getBlock(0).then()
             Web3Service.web3.eth.getBlock(0, function (e, block) {
               var data = {};
 

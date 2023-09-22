@@ -1,6 +1,6 @@
 <div class="page-header">
   <h1>
-    {{wallet.name}} {{balance|ether}}
+    {{wallet.name}} {{balance|trx}}
   </h1>
   <h5 class="grey">{{wallet.address}}</h5>
   <span class="btn btn-success" ng-click="showSafeMigrationModal()">Safe Multisig Migration</span>
@@ -226,7 +226,7 @@
           </div>
         </td>
         <td>
-          {{transactions[txId].value|ether}}
+          {{transactions[txId].value|trx}}
         </td>
         <td>
           <div class="text-center" ng-show="!transactions[txId].dataDecoded.title">

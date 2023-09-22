@@ -31,8 +31,8 @@
           }
         }
 
-        // Automatically get ETH chain
-        Transaction.getEthereumChain().then(
+        // Automatically get TRON chain
+        Transaction.getTronChain().then(
           function (data) {
             var factoryAddress;
 

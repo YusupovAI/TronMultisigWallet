@@ -28,6 +28,7 @@
     "child_process": "1.0.2",
     "ganache-cli": "6.1.8",
     "solc": "0.5.8",
+    "tronweb": "^5.3.0",
     "truffle": "3.4.11"
   },
   "devDependencies": {

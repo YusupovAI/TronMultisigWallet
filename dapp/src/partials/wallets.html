@@ -61,7 +61,7 @@
           </div>
         </td>
         <td>
-          <span value-or-dash-by-connectivity="{{wallet.balance|ether}}">{{wallet.balance|ether}}</span>
+          <span value-or-dash-by-connectivity="{{wallet.balance|trx}}">{{wallet.balance|trx}}</span>
           <button type="button" disabled-if-no-accounts-or-wallet-available="{{wallet.address}}"
             class="btn btn-default btn-sm pull-right"
             ng-click="deposit(wallet)">
@@ -77,7 +77,7 @@
           </button>
         </td>
         <td>
-          <span value-or-dash-by-connectivity="{{wallet.limit|ether}}">{{wallet.limit|ether}}</span>
+          <span value-or-dash-by-connectivity="{{wallet.limit|trx}}">{{wallet.limit|trx}}</span>
           <button type="button" disabled-if-no-accounts-or-wallet-available="{{wallet.address}}"
             class="btn btn-default btn-sm pull-right"
             ng-click="setLimit(wallet)">
@@ -85,7 +85,7 @@
           </button>
         </td>
         <td>
-          <span value-or-dash-by-connectivity="{{wallet.maxWithdraw|ether}}">{{wallet.maxWithdraw|ether}}</span>
+          <span value-or-dash-by-connectivity="{{wallet.maxWithdraw|trx}}">{{wallet.maxWithdraw|trx}}</span>
           <button type="button" disabled-if-no-accounts-or-wallet-available="{{wallet.address}}"
             class="btn btn-default btn-sm pull-right"
             data-action="withdraw"

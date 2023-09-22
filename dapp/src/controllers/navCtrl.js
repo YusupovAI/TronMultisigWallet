@@ -6,7 +6,7 @@
         $scope.navCollapsed = true;
         $scope.isElectron = isElectron;
         $scope.config = Config.getConfiguration();
-        $scope.metamaskInjected = Web3Service.isMetamaskInjected();
+        $scope.tronWebInjected = Web3Service.isTronWebInjected();
         $scope.web3ProviderName = null;
 
         // Reload config when it changes
@@ -114,7 +114,7 @@
           /**
           * Setup Ethereum Chain infos
           */
-          Transaction.getEthereumChain().then(
+          Transaction.getTronChain().then(
             function (data) {
               $scope.ethereumChain = data;
               txDefaultOrig.walletFactoryAddress = data.walletFactoryAddress;
@@ -124,8 +124,9 @@
 
           // init params
           $scope.paramsPromise = Wallet.initParams().then(function () {
-            $scope.loggedIn = !isElectron ? (Web3Service.coinbase !== undefined && Web3Service.coinbase !== null) : true;
+            $scope.loggedIn = Web3Service.account !== undefined && Web3Service.account !== null;
             $scope.coinbase = Web3Service.coinbase;
+            $scope.account = Web3Service.account;
             $scope.nonce = Wallet.txParams.nonce;
             $scope.balance = Wallet.balance;
             $scope.paramsPromise = null;
@@ -241,7 +242,7 @@
                         $uibModalInstance.close();
                       };
 
-                      $scope.metamaskInjected = Web3Service.isMetamaskInjected();
+                      $scope.tronWebInjected = Web3Service.isTronWebInjected();
 
 
                       $scope.openMetamaskWidgetAndClose = function () {
@@ -260,6 +261,7 @@
               });
             },
             function (error) {
+              console.log('Error: ', error);
               // do nothing
             }
           );

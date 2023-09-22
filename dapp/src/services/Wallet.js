@@ -216,90 +216,12 @@
 
       // Init txParams
       wallet.initParams = function () {
-        return $q(function (resolve, reject) {
-            var batch = Web3Service.web3.createBatch();
-            Web3Service
-            .updateAccounts(
-              function (e, accounts) {
-                var promises = $q.all(
-                  [
-                    $q(function (resolve, reject) {
-                      var request = wallet.updateGasLimit(function (e) {
-                        if (e) {
-                          reject(e);
-                        }
-                        else {
-                          resolve();
-                        }
-                      });
-                      if (request) {
-                        batch.add(request);
-                      }
-                    }),
-                    // DEPRECATED
-                    // $q(function (resolve, reject) {
-                    //   var request = wallet.updateGasPrice(function (e) {
-                    //     if (e) {
-                    //       reject(e);
-                    //     }
-                    //     else {
-                    //       resolve();
-                    //     }
-                    //   });
-                    //   if (request) {
-                    //     batch.add(request);
-                    //   }
-                    // }),
-                    $q(function (resolve, reject) {
-                      if (Web3Service.coinbase) {
-                        batch.add(
-                          wallet.updateNonce(Web3Service.coinbase, function (e) {
-                            if (e) {
-                              reject(e);
-                            }
-                            else {
-                              resolve();
-                            }
-                          })
-                        );
-                      }
-                      else {
-                        resolve();
-                      }
-                    }),
-                    $q(function (resolve, reject) {
-                      if (Web3Service.coinbase) {
-                        batch.add(
-                          wallet.getBalance(Web3Service.coinbase, function (e, balance) {
-                            if (e) {
-                              reject(e);
-                            }
-                            else {
-                              wallet.balance = balance;
-                              resolve();
-                            }
-                          })
-                        );
-                      }
-                      else {
-                        // If no coinbase is set, defaults to 0
-                        wallet.balance = 0;
-                        resolve();
-                      }
-                    })
-                  ]
-                ).then(function () {
-                  resolve();
-                }, reject);
-
-                batch.execute();
-                return promises;
-              }
-
-            );
-          }
-        );
-
+        return new Promise(function (resolve, reject) {
+          Web3Service.updateAccounts(function (account) {
+            wallet.balance = account.balance;
+            resolve();
+          });
+        });
       };
 
       wallet.updateWallet = function (w) {
@@ -325,11 +247,8 @@
         // Converts the addresses to Checksumed addresses
         if (w.owners) {
           var owners = {};
-          var checksumedAddress;
-
           for (var x in w.owners) {
-            checksumedAddress = Web3Service.toChecksumAddress(w.owners[x].address);
-            owners[checksumedAddress] = w.owners[x]
+            owners[w.owners[x].address] = w.owners[x]
           }
         }
 
@@ -631,55 +550,38 @@
       };
 
       wallet.deployWithLimit = function (owners, requiredConfirmations, limit, cb) {
-        var MyContract = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi);
-        var gasNeeded = 3000000;
-
-        Web3Service.configureGas({gas: gasNeeded, gasPrice: wallet.txParams.gasPrice}, function (gasOptions){
-          MyContract.new(
+        Web3Service.tronWeb.transactionBuilder.createSmartContract({
+          abi: wallet.json.multiSigDailyLimit.abi,
+          bytecode: wallet.json.multiSigDailyLimit.bytecode,
+          feeLimit: 1000000000,
+          callValue: 0,
+          userFeePercentage: 1,
+          parameters: [
             owners,
-            requiredConfirmations,
-            limit,
-            wallet.txDefaults({
-              data: wallet.json.multiSigDailyLimit.binHex,
-              gas: gasOptions.gas,
-              gasPrice: gasOptions.gasPrice
-            }),
-            cb
-          );
-        });
+            requiredConfirmations.toString(),
+            limit.toString(),
+          ],
+        }, Web3Service.tronWeb.defaultAddress.hex).then((transaction) => {
+          Web3Service.tronWeb.trx.sign(transaction).then((signed) => {
+            Web3Service.tronWeb.trx.sendRawTransaction(signed).then((result) => {
+              cb(null, result);
+            }, (e) => {cb(e, null)});
+          }, (e) => {cb(e, null);});
+        }, (e) => {cb(e, null);});
       };
 
       wallet.deployWithLimitFactory = function (owners, requiredConfirmations, limit, cb) {
-        var walletFactory = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimitFactory.abi).at(txDefault.walletFactoryAddress);
-        walletFactory
-          .create
-          .estimateGas(
-            owners,
-            requiredConfirmations,
-            limit,
-            function (e, gas) {
-              if (e) {
-                cb(e);
-              }
-              else {
-                Web3Service.configureGas({gas: Math.ceil(gas * 1.5), gasPrice: wallet.txParams.gasPrice}, function (gasOptions){
-                  walletFactory.create(
-                    owners,
-                    requiredConfirmations,
-                    limit,
-                    wallet.txDefaults({
-                      data: wallet.json.multiSigDailyLimit.binHex,
-                      gas: gasOptions.gas,
-                      gasPrice: gasOptions.gasPrice
-                    }),
-                    cb
-                  );
-                });
-              }
-            }
-          );
-
-
+        var walletFactory = Web3Service.tronWeb.contract(
+          wallet.json.multiSigDailyLimitFactory.abi,
+          txDefault.walletFactoryAddress,
+        );
+        walletFactory.create(
+          owners,
+          requiredConfirmations,
+          limit,
+        ).send().then((result) => {
+          cb(null, result);
+        }, (e) => {cb(e, result);});
       };
 
       wallet.deployWithLimitFactoryOffline = function (owners, requiredConfirmations, limit, cb) {
@@ -723,7 +625,11 @@
       };
 
       wallet.getBalance = function (address, cb) {
-        return Web3Service.web3.eth.getBalance.request(address, cb);
+        Web3Service.tronWeb.trx.getBalance(address).then((result) => {
+          cb(null, result);
+        }, (error) => {
+          cb(error, null);
+        });
       };
 
       wallet.restore = function (info, cb) {
@@ -764,12 +670,13 @@
       * Get wallet owners
       */
       wallet.getOwners = function (address, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.getOwners,
-          [],
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        console.log(instance);
+        instance.getOwners().call().then((result) => {
+          cb(null, result);
+        }, (error) => {
+          cb(error, null);
+        })
       };
 
       /**
@@ -932,12 +839,12 @@
       * Get required confirmations number
       */
       wallet.getRequired = function (address, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.required,
-          [],
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.required().call().then((result) => {
+          cb(null, result);
+        }, (error) => {
+          cb(error, null);
+        })
       };
 
       /**
@@ -1063,24 +970,24 @@
       * Get daily limit
       **/
       wallet.getLimit = function (address, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.dailyLimit,
-          [],
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.dailyLimit().call().then((result) => {
+          cb(null, result);
+        }, (error) => {
+          cb(error, null);
+        });
       };
 
       /**
       *
       **/
       wallet.calcMaxWithdraw = function (address, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.calcMaxWithdraw,
-          [],
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.calcMaxWithdraw().call().then((result) => {
+          cb(null, result);
+        }, (error) => {
+          cb(error, null);
+        });
       };
 
       /**

@@ -1,5 +1,6 @@
 FROM ubuntu:18.04
 
+EXPOSE 5000
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN apt-get update --fix-missing
@@ -21,5 +22,7 @@ WORKDIR /dapp
 ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
-# RUN npm i
+RUN npm i
+
+ENTRYPOINT [ "npm", "run", "start" ]
 

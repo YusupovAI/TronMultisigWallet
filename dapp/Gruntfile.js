@@ -127,7 +127,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-npm-command');
 
   grunt.registerTask('default', ['ngtemplates', 'http-server']);
-  grunt.registerTask('ledger', ['ssl-cert', 'ngtemplates', 'http-server:ssl']);
   grunt.registerTask('bundle', '', function () {
     // Command: `npx grunt bundle` or `npx grunt bundle --mode=electron`
     const fs = require('fs');
@@ -166,9 +165,7 @@ module.exports = function(grunt) {
       'src/trezor-connect-v4.js'
     ];
 
-    const webOnlyModules = [
-      'node_modules/ledger-wallet-provider/dist/ledgerwallet.js'
-    ];
+    const webOnlyModules = [];
 
     const standaloneLibs = [
       {

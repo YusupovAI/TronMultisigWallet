@@ -178,7 +178,7 @@
           // be using a not checksummed configuration, which was stored into the browser before
           // the user visited the current app version.
           var walletsData = JSON.parse(localStorage.getItem("wallets")) || {};
-          walletsData = Wallet.toChecksummedWalletConfiguration(walletsData);
+          // walletsData = Wallet.toChecksummedWalletConfiguration(walletsData);
           localStorage.setItem('wallets', JSON.stringify(walletsData));
 
           // Convert transactions's addresses too
@@ -277,7 +277,7 @@
             scope: $scope,
             controller: function ($scope, $uibModalInstance) {
               $scope.ok = function () {
-                $scope.old.address = Web3Service.toChecksumAddress($scope.old.address);
+                $scope.old.address = $scope.old.address;
                 Wallet.restore($scope.old, function (e) {
                   if (e) {
                     Utils.dangerAlert(e);

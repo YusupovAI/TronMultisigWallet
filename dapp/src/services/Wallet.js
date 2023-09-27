@@ -261,7 +261,8 @@
             safeMigrated: w.safeMigrated || false
           }
         );
-        
+
+        console.log('wait', wallets);
         localStorage.setItem("wallets", JSON.stringify(wallets));
         wallet.updates++;
         try{
@@ -422,8 +423,9 @@
           }
         }
 
-        wallet.wallets = wallet.toChecksummedWalletConfiguration(walletsData);
+        // wallet.wallets = wallet.toChecksummedWalletConfiguration(walletsData);
         // Save changes to `wallets` 
+        console.log('kek', wallet.wallets);
         localStorage.setItem("wallets", JSON.stringify(wallet.wallets));
         // Save changes to `addressBook`
         if (validJsonConfig.addressBook) {
@@ -504,6 +506,7 @@
       wallet.removeWallet = function (address) {
         var wallets = wallet.getAllWallets();
         delete wallets[address];
+        console.log('rem', wallets);
         localStorage.setItem("wallets", JSON.stringify(wallets));
         wallet.updates++;
         try {
@@ -515,6 +518,7 @@
       wallet.update = function (address, name) {
         var wallets = wallet.getAllWallets();
         wallets[address].name = name;
+        console.log('up', wallets);
         localStorage.setItem("wallets", JSON.stringify(wallets));
         wallet.updates++;
         try{
@@ -671,7 +675,6 @@
       */
       wallet.getOwners = function (address, cb) {
         var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
-        console.log(instance);
         instance.getOwners().call().then((result) => {
           cb(null, result);
         }, (error) => {

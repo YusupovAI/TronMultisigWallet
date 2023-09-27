@@ -102,7 +102,7 @@
 
       $scope.addOwner = function () {
         // Checksum owner's address
-        $scope.newOwner = Web3Service.toChecksumAddress($scope.newOwner);
+        $scope.newOwner = $scope.newOwner;
         $scope.owners[$scope.newOwner.address] = $scope.newOwner;
         $scope.newOwner = {}; // reset values
         $scope.maxAllowedConfirmations = Object.keys($scope.owners).length

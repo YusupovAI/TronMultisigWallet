@@ -84,12 +84,14 @@
           $scope.methods = [{name: "Fallback function", index: ""}];
           $scope.method = $scope.methods[0];
           $scope.abiArray = JSON.parse($scope.abi);
-          $scope.abiArray.map(function (item, index) {
-            if (!item.constant && item.name && item.type == "function") {
+          $scope.abiArray.entrys.map(function (item, index) {
+            if (!item.constant && item.name && item.type == "Function") {
               $scope.methods.push({name: item.name, index: index, inputs: item.inputs});
             }
           });
+          console.log($scope.methods);
         } catch (error) {
+          console.log('err: ', error);
           $scope.methods = []; // reset methods
         }
       };

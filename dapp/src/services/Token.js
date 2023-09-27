@@ -152,6 +152,7 @@
         });
 
         Object.assign(wallets[address].tokens, tokens);
+        console.log('wow', wallets);
         localStorage.setItem("wallets", JSON.stringify(wallets));
       };
 

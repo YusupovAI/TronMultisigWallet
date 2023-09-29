@@ -302,9 +302,9 @@
             var method = tx.data.slice(2, 10);
             var owner = "0x1";
             if (tx.data && tx.data.length > 12) {
-              owner = '0x' + new Web3().toBigNumber("0x" + tx.data.slice(11)).toHexString();
+              var tmp = new Web3().toBigNumber("0x" + tx.data.slice(11));
+              owner = '0x' + tmp.toString(16);
             }
-            console.log('kek');
             switch (method) {
               case "ba51a6df":
                 var confirmations = new Web3().toBigNumber("0x" + tx.data.slice(11)).toString();
@@ -350,7 +350,7 @@
               default:
                 // Check abis in cache
                 var abis = ABI.get();
-                var decoded = ABI.decode(tx.to, tx.data);
+                var decoded = ABI.decode(tx.data);
 
                 if (abis[tx.to] && abis[tx.to].abi) {
                   decoded.usedABI = true;
@@ -434,8 +434,8 @@
               }
 
               $scope.txIds = ids.slice(0).reverse()[0];
-              ids.map(function (tx) {
-                console.log(tx);
+              ids[0].map(function (tx) {
+                console.log('TX: ', tx);
                 if (!$scope.transactions[tx]) {
                   $scope.transactions[tx] = {};
                 }

@@ -4,7 +4,7 @@ EXPOSE 5000
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN apt-get update --fix-missing
-RUN apt-get install -y curl python3 git python make build-essential
+RUN apt-get install -y curl python3 git python make build-essential libusb-1.0-0-dev
 
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 8.16.0

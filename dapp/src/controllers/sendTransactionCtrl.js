@@ -77,7 +77,7 @@
             }
           });
         }
-        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e18');
+        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e6');
         tx.from = Web3Service.coinbase;
         // if method, use contract instance method
         if ($scope.method && $scope.method.index !== undefined && $scope.method.index !== "") {
@@ -143,7 +143,7 @@
             }
           });
         }
-        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e18');
+        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e6');
         tx.from = Web3Service.coinbase;
         tx.gas = 21000;
         
@@ -175,7 +175,7 @@
       };
 
       $scope.signOff = function () {
-        $scope.tx.value = "0x" + new Web3().toBigNumber($scope.tx.value).mul('1e18').toString(16);
+        $scope.tx.value = "0x" + new Web3().toBigNumber($scope.tx.value).mul('1e6').toHexString();
         $scope.tx.from = Web3Service.coinbase;
         var params = [];
         Object.assign(params, $scope.params);
@@ -224,9 +224,9 @@
         try {
           $scope.methods = [{name: "Fallback function", index: ""}];
           $scope.method = $scope.methods[0];
-          $scope.abiArray = JSON.parse($scope.abi);
+          $scope.abiArray = JSON.parse($scope.abi).entrys;
           $scope.abiArray.map(function (item, index) {
-            if (item.name && item.type == "function") {
+            if (item.name && item.type.toLowerCase() == "function") {
               $scope.methods.push({name: item.name, index: index, inputs: item.inputs, constant: item.constant});
             }
           });

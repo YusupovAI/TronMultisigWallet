@@ -226,7 +226,7 @@
                 $scope.showPending,
                 $scope.showExecuted,
                 function (e, items) {
-                  $scope.totalItems = items.toNumber();
+                  $scope.totalItems = items.count.toNumber();
                   $scope.updateTransactions();
 
                 }
@@ -297,12 +297,14 @@
         };
 
         $scope.getParam = function (tx) {
+          console.log('getting');
           if (tx.data && tx.data.length > 3) {
             var method = tx.data.slice(2, 10);
             var owner = "0x1";
             if (tx.data && tx.data.length > 12) {
-              owner = '0x' + new Web3().toBigNumber("0x" + tx.data.slice(11)).toString(16);
+              owner = '0x' + new Web3().toBigNumber("0x" + tx.data.slice(11)).toHexString();
             }
+            console.log('kek');
             switch (method) {
               case "ba51a6df":
                 var confirmations = new Web3().toBigNumber("0x" + tx.data.slice(11)).toString();
@@ -348,7 +350,7 @@
               default:
                 // Check abis in cache
                 var abis = ABI.get();
-                var decoded = ABI.decode(tx.data);
+                var decoded = ABI.decode(tx.to, tx.data);
 
                 if (abis[tx.to] && abis[tx.to].abi) {
                   decoded.usedABI = true;
@@ -415,6 +417,7 @@
         };
 
         $scope.updateTransactions = function () {
+          console.log('updating transactions');
           // Get all transaction ids, with filters
           var from = $scope.totalItems - $scope.itemsPerPage * ($scope.currentPage);
           var to = $scope.totalItems - ($scope.currentPage - 1) * $scope.itemsPerPage;
@@ -426,61 +429,56 @@
             $scope.showPending,
             $scope.showExecuted,
             function (e, ids) {
-              var txBatch = Web3Service.web3.createBatch();
               if (!$scope.transactions) {
                 $scope.transactions = {};
               }
 
-              $scope.txIds = ids.slice(0).reverse();
+              $scope.txIds = ids.slice(0).reverse()[0];
               ids.map(function (tx) {
+                console.log(tx);
                 if (!$scope.transactions[tx]) {
                   $scope.transactions[tx] = {};
                 }
-                // Get transaction info
-                txBatch.add(
-                  Wallet.getTransaction($scope.wallet.address, tx, function (e, info) {
-                    if (!e && info.to) {
-                      // Convert to checksum address
-                      info.to = Web3Service.toChecksumAddress(info.to);
-                      $scope.$apply(function () {
-                        // Added reference to the wallet
-                        info.from = $scope.wallet.address;
-                        Object.assign($scope.transactions[tx], info);
 
-                        var savedABI = ABI.get()[info.to];
+                // Get transaction info
+                Wallet.getTransaction($scope.wallet.address, tx, function (e, info) {
+                  if (!e && info.to) {
+                    $scope.$apply(function () {
+                      // Added reference to the wallet
+                      info.from = $scope.wallet.address;
+                      Object.assign($scope.transactions[tx], info);
+
+                      var savedABI = ABI.get()[info.to];
 
                         // Get data info if data has not being decoded, because is a new transactions or we don't have the abi to do it
-                        if (!$scope.transactions[tx].dataDecoded || $scope.transactions[tx].dataDecoded.notDecoded || ($scope.transactions[tx].dataDecoded.usedABI && (!savedABI || savedABI.abi))) {
-                          $scope.transactions[tx].dataDecoded = $scope.getParam($scope.transactions[tx]);
-                        }
-                        // If destionation type has not been set
-                        if (!$scope.transactions[tx].destination) {
-                          $scope.transactions[tx].destination = $scope.getDestination($scope.transactions[tx]);
-                        }
-                      });
-                    }
-                  })
-                );
-                // Get transaction confirmations
-                txBatch.add(
-                  Wallet.getConfirmations($scope.wallet.address, tx, function (e, confirmations) {
-                    $scope.$apply(function () {
-                      $scope.transactions[tx].confirmations = Web3Service.toChecksumAddress(confirmations);
-                      // If the current user is among the array of confirmations, we can set the transaction
-                      // as confirmed by that user
-                      if ($scope.transactions[tx].confirmations.indexOf(Web3Service.coinbase) != -1) {
-                        $scope.transactions[tx].confirmed = true;
+                      if (!$scope.transactions[tx].dataDecoded || $scope.transactions[tx].dataDecoded.notDecoded || ($scope.transactions[tx].dataDecoded.usedABI && (!savedABI || savedABI.abi))) {
+                        $scope.transactions[tx].dataDecoded = $scope.getParam($scope.transactions[tx]);
                       }
-                      else {
-                        $scope.transactions[tx].confirmed = false;
+                      // If destionation type has not been set
+                      if (!$scope.transactions[tx].destination) {
+                        $scope.transactions[tx].destination = $scope.getDestination($scope.transactions[tx]);
                       }
                     });
-                  })
-                );
+                  }
+                });
+                // Get transaction confirmations
+                Wallet.getConfirmations($scope.wallet.address, tx, function (e, confirmations) {
+                  $scope.$apply(function () {
+                    $scope.transactions[tx].confirmations = confirmations._confirmations.map(Web3Service.tronWeb.address.fromHex);
+                    console.log(Web3Service.coinbase);
+                    // If the current user is among the array of confirmations, we can set the transaction
+                    // as confirmed by that user
+                    if ($scope.transactions[tx].confirmations.indexOf(Web3Service.coinbase) != -1) {
+                      $scope.transactions[tx].confirmed = true;
+                    }
+                    else {
+                      $scope.transactions[tx].confirmed = false;
+                    }
+                  });
+                });
               });
 
-              txBatch.execute();
-            }).call();
+            });
         };
 
         /*$scope.getOwners = function () {

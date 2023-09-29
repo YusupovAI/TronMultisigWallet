@@ -49,24 +49,14 @@
              * Execute `addAddress` flow
              */
             $scope.ok = function () {
-              // Check whether it is a contract, a token or a EOA
-              var checksumAddress;
-              try {
-                checksumAddress = Web3Service.toChecksumAddress($scope.book.address);
-              } catch (error) {
-                Utils.dangerAlert(error);
-              }
-
-              if (!Web3Service.web3.isAddress($scope.book.address)) {
+              if (!Web3Service.tronWeb.isAddress($scope.book.address)) {
                 // Show alert
                 Utils.dangerAlert("Invalid Ethereum Address");
                 return;
               }
 
-              $scope.book.address = checksumAddress;
-
               // Get multisig instance from specified address
-              var multisigInstance = Web3Service.web3.eth.contract(Wallet.json.multiSigDailyLimit.abi).at($scope.book.address);
+              var multisigInstance = Web3Service.tronWeb.contract(Wallet.json.multiSigDailyLimit.abi, $scope.book.address).at($scope.book.address);
               // Look for MAX_OWNER_COUNT property in Multisig contract,
               // it will be > 0 if the address corresponds to a real Multisig instance
               multisigInstance.MAX_OWNER_COUNT(function (e, count) {

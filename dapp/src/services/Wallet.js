@@ -19,7 +19,12 @@
       };
 
       wallet.addMethods = function (abi) {
-        abiDecoder.addABI(abi);
+        // if (abi.entrys) {
+        //   abiDecoder.addABI(abi.entrys);
+        // } else {
+        //   console.log(abi);
+        //   abiDecoder.addABI(abi);
+        // }
       };
 
       wallet.mergedABI = wallet.json.multiSigDailyLimit.abi.concat(wallet.json.multiSigDailyLimitFactory.abi).concat(wallet.json.token.abi);
@@ -583,7 +588,10 @@
           owners,
           requiredConfirmations,
           limit,
-        ).send().then((result) => {
+        ).send({
+          feeLimit: 100_000_000,
+          callValue: 0,
+        }).then((result) => {
           cb(null, result);
         }, (e) => {cb(e, result);});
       };
@@ -637,29 +645,29 @@
       };
 
       wallet.restore = function (info, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(info.address);
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, info.address);
+        console.log(info);
+
         // Check contract function works
         try {
-          instance.MAX_OWNER_COUNT(function (e, count) {
-            if (e && Connection.isConnected) {
-              cb(e);
+          instance.MAX_OWNER_COUNT().call().then(function (count) {
+            if ((!count && Connection.isConnected) || (count && count.eq(0) && Connection.isConnected)) {
+              // it is not a wallet
+              cb("Address " + info.address + " is not a wallet contract");
             }
             else {
-              if ((!count && Connection.isConnected) || (count && count.eq(0) && Connection.isConnected)) {
-                // it is not a wallet
-                cb("Address " + info.address + " is not a wallet contract");
+              // Add wallet, add My account to the object by default, won't be
+              // displayed anyway if user is not an owner, but if it is, name will be used
+              if (Web3Service.coinbase) {
+                info.owners = {};
+                info.owners[Web3Service.coinbase] = { address: Web3Service.coinbase, name: 'My Account'};
               }
-              else {
-                // Add wallet, add My account to the object by default, won't be
-                // displayed anyway if user is not an owner, but if it is, name will be used
-                if (Web3Service.coinbase) {
-                  var coinbase = Web3Service.toChecksumAddress(Web3Service.coinbase);
-                  info.owners = {};
-                  info.owners[coinbase] = { address: coinbase, name: 'My Account'};
-                }
-                wallet.updateWallet(info);
-                cb(null, info);
-              }
+              wallet.updateWallet(info);
+              cb(null, info);
+            } 
+          }, function (e) {
+            if (e && Connection.isConnected) {
+              cb(e);
             }
           });
         }
@@ -906,67 +914,55 @@
       * Get transaction hashes
       */
       wallet.getTransactionIds = function (address, from, to, pending, executed, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.getTransactionIds,
-          [from, to, pending, executed],
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.getTransactionIds(from, to, pending, executed).call().then(function (result) {
+          cb(null, result);
+        }, function (e) {
+          cb(e);
+        });
       };
 
       /**
       * Get transaction
       */
       wallet.getTransaction = function (address, txId, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.transactions,
-          [txId],
-          function (e, tx) {
-            // convert to object
-            cb(
-              e,
-              {
-                to: tx[0],
-                value: "0x" + tx[1].toString(16),
-                data: tx[2],
-                id: txId,
-                executed: tx[3]
-              }
-            );
-          }
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.transactions(txId.toString()).call().then(function (result) {
+          console.log(result);
+          cb(null, {
+            to: Web3Service.tronWeb.address.fromHex(result.destination),
+            value: '0x' + result.value.toHexString(),
+            data: result.data,
+            id: txId,
+            executed: result.executed,
+          })
+        }, function (e) {
+          cb(e);
+        });
       };
 
       /**
       * Get confirmations
       */
       wallet.getConfirmations = function (address, txId, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.getConfirmations,
-          [txId],
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.getConfirmations(txId.toString()).call().then(function (result) {
+          cb(null, result);
+        }, function (e) {
+          cb(e);
+        });
       };
 
       /**
       * Get transaction count
       **/
       wallet.getTransactionCount = function (address, pending, executed, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        return wallet.callRequest(
-          instance.getTransactionCount,
-          [pending, executed],
-          function (e, count) {
-            if (e) {
-              cb(e);
-            }
-            else {
-              cb(null, count);
-            }
-          }
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.getTransactionCount(pending, executed).call().then(function (count) {
+          cb(null, count);
+        }, function (e) {
+          cb(e);
+        });
       };
 
       /**
@@ -1058,22 +1054,14 @@
       * Confirm transaction by another wallet owner
       */
       wallet.confirmTransaction = function (address, txId, options, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        instance.confirmTransaction.estimateGas(txId, wallet.txDefaults(), function (e, gas){
-          if (e) {
-            cb(e);
-          }
-          else {
-            Web3Service.sendTransaction(
-              instance.confirmTransaction,
-              [
-                txId,
-                wallet.txDefaults({gas: Math.ceil(gas * 1.5)})
-              ],
-              options,
-              cb
-            );
-          }
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.confirmTransaction(txId.toString()).send({
+          feeLimit: 100_000_000,
+          callValue: 0,
+        }).then(function (result) {
+          cb(null, result);
+        }, function (e) {
+          cb(e);
         });
       };
 
@@ -1099,21 +1087,14 @@
       */
       wallet.executeTransaction = function (address, txId, options, cb) {
         var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        instance.executeTransaction.estimateGas(txId, wallet.txDefaults(), function (e, gas) {
-          if (e) {
-            cb(e);
-          }
-          else {
-            Web3Service.sendTransaction(
-              instance.executeTransaction,
-              [
-                txId,
-                wallet.txDefaults({gas: Math.ceil(gas * 1.5)})
-              ],
-              options,
-              cb
-            );
-          }
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.executeTransaction(txId.toString()).send({
+          value: 0,
+          feeLimit: 200_000_000,
+        }).then(function (result) {
+          cb(null, result);
+        }, function (e) {
+          cb(e);
         });
       };
 
@@ -1169,16 +1150,15 @@
       * Revoke transaction confirmation
       */
       wallet.revokeConfirmation = function (address, txId, options, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        Web3Service.sendTransaction(
-          instance.revokeConfirmation,
-          [
-            txId,
-            wallet.txDefaults({gas: 300000})
-          ],
-          options,
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+        instance.revokeConfirmation(txId.toString()).send({
+          value: 0,
+          feeLimit: 100_000_000,
+        }).then(function (result) {
+          cb(null, result);
+        }, function (e) {
+          cb(e);
+        });
       };
 
       /**
@@ -1197,16 +1177,35 @@
         });
       };
 
+      wallet.getSelector = function (method) {
+        var inputs = [];
+        if (method.inputs) {
+          inputs = method.inputs;
+        }
+        var fullName = method.name + '(' + inputs.map((x) => x.type).join(',') + ')';
+        console.log(fullName);
+        var bytes = Web3Service.tronWeb.utils.ethersUtils.toUtf8Bytes(fullName);
+        console.log(bytes);
+        return Web3Service.tronWeb.utils.ethersUtils.keccak256(bytes).slice(2, 10);
+      }
+
       /**
       * Submit transaction
       **/
       wallet.submitTransaction = function (address, tx, abi, method, params, options, cb) {
         var data = '0x0';
-        if (abi && method) {
-          var instance = Web3Service.web3.eth.contract(abi).at(tx.to);
-          data = instance[method].getData.apply(this, params);
+        if (abi && abi.entrys) {
+          abi = abi.entrys;
         }
-        var walletInstance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
+        if (abi && method) {
+          for (let i = 0; i < abi.length; ++i) {
+            if (abi[i].name == method) {
+              data = Web3Service.tronWeb.utils.abi.encodeParamsV2ByABI(abi[i], params);
+              data = '0x' + wallet.getSelector(abi[i]) + data.replace(/^0x/, '');
+            }
+          }
+        }
+        var walletInstance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
         // Get nonce
         wallet.getTransactionCount(address, true, true, function (e, count) {
           if (e) {
@@ -1214,34 +1213,16 @@
           }
           else {
             // estimate gas
-            walletInstance.submitTransaction.estimateGas(
-              tx.to,
-              tx.value,
-              data,
-              count,
-              wallet.txDefaults(),
-              function (e, gas) {
-                if (e) {
-                  cb(e);
-                }
-                else {
-                  Web3Service.sendTransaction(
-                    walletInstance.submitTransaction,
-                    [
-                      tx.to,
-                      tx.value,
-                      data,
-                      count,
-                      wallet.txDefaults({gas: Math.ceil(gas * 1.5)}),
-                    ],
-                    options,
-                    cb
-                  );
-                }
-              }
-            );
+            walletInstance.submitTransaction(tx.to, tx.value.toString(), data).send({
+              feeLimit: 100_000_000,
+              callValue: 0,
+            }).then(function (result) {
+              cb(null, result);
+            }, function (e) {
+              cb(e);
+            });
           }
-        }).call();
+        });
       };
 
       /**

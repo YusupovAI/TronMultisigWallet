@@ -83,13 +83,15 @@
         try {
           $scope.methods = [{name: "Fallback function", index: ""}];
           $scope.method = $scope.methods[0];
-          $scope.abiArray = JSON.parse($scope.abi);
-          $scope.abiArray.entrys.map(function (item, index) {
-            if (!item.constant && item.name && item.type == "Function") {
+          $scope.abiArray = JSON.parse($scope.abi).entrys;
+          console.log($scope.abiArray);
+          $scope.abiArray.map(function (item, index) {
+            console.log(item);
+            if (!item.constant && item.name && item.type.toLowerCase() == "function") {
               $scope.methods.push({name: item.name, index: index, inputs: item.inputs});
             }
           });
-          console.log($scope.methods);
+          $scope.method = $scope.methods[0];
         } catch (error) {
           console.log('err: ', error);
           $scope.methods = []; // reset methods
@@ -114,7 +116,7 @@
             }
           });
         }
-        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e18');
+        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e6');
         Wallet.submitTransaction(
           $scope.wallet.address,
           tx,
@@ -127,6 +129,7 @@
               Utils.dangerAlert(e);
             }
             else {
+              console.log(tx);
               Utils.notification("Multisig transaction was sent.");
               if ($scope.abiArray) {
                 ABI.update($scope.abiArray, $scope.tx.to, $scope.name);
@@ -167,7 +170,7 @@
             }
           });
         }
-        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e18');
+        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e6');
         Wallet.submitTransaction(
           $scope.wallet.address,
           tx,
@@ -204,7 +207,7 @@
             }
           });
         }
-        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e18');
+        tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e6');
         Wallet.signTransaction(
           $scope.wallet.address,
           tx,
@@ -224,7 +227,7 @@
       };
 
       $scope.getNonce = function () {
-        $scope.tx.value = "0x" + new Web3().toBigNumber($scope.tx.value).mul('1e18').toString(16);
+        $scope.tx.value = "0x" + new Web3().toBigNumber($scope.tx.value).mul('1e6').toHexString();
         if ($scope.abiArray) {
           var instance = Web3Service.web3.eth.contract($scope.abiArray).at($scope.tx.to);
           $scope.data = instance[$scope.method.name].getData.apply(this, $scope.params);

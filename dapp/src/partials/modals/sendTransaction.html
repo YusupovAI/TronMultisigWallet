@@ -20,7 +20,7 @@
       <input type="text" class="form-control" ng-model="name" name="name" />
     </div>
     <div class="form-group">
-      <label for="value">Amount (ETH)</label>
+      <label for="value">Amount (TRX)</label>
       <input id="value" type="number" class="form-control" ng-model="tx.value" min="0" max="999999999999999" ng-required="!abi">
     </div>
     <div class="form-group">
@@ -32,11 +32,11 @@
       <select id="method" ng-model="method" ng-options="method.name for method in methods track by method.index"
        ng-required="tx.abi" class="form-control" ng-change="setMethod()" ng-disabled="!abiArray" ></select>
     </div>
-    <div class="form-group" ng-show="method && abiArray[method.index].inputs.length > 0">
+    <div class="form-group" ng-show="method && method.inputs">
       <h3>
         Parameters
       </h3>
-      <div class="form-group" ng-repeat="param in abiArray[method.index].inputs" >
+      <div class="form-group" ng-repeat="param in method.inputs" >
         <div ng-switch on="param.type">
           <label ng-attr-for="{{ 'value-' + $index }}">{{param.name}}</label>
           <input ng-attr-id="{{ 'value-' + $index }}" ng-switch-default type="text" class="form-control" ng-model="params[$index]">
@@ -47,7 +47,7 @@
   <div class="modal-footer">
     <button type="button" ng-click="send()" class="btn btn-default" show-hide-by-connectivity="online"
       disabled-if-invalid-address="{{tx.to}}"
-      ng-disabled="form.$invalid || abiArray[method.index].constant">
+      ng-disabled="form.$invalid">
       Send transaction
     </button>
     <button type="button" ng-click="simulate()" class="btn btn-default" show-hide-by-connectivity="online"

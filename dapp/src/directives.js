@@ -417,19 +417,9 @@
               return attrs.disabledIfInvalidAddress;
             },
               function () {
-                // Do more checks
-                if (attrs.disabledIfInvalidAddress.length < 42) {
-                  isAddressValid = false;
-                }
-                // https://web3js.readthedocs.io/en/1.0/web3-utils.html#isaddress
-                else if (Web3Service.web3.isAddress(attrs.disabledIfInvalidAddress)
-                  || Web3Service.web3.isAddress(Web3Service.toChecksumAddress(attrs.disabledIfInvalidAddress))) {
-                  // Address valid (0x0........)
-                  isAddressValid = true;
-                }
-                else {
-                  isAddressValid = false;
-                }
+                console.log('lul');
+                isAddressValid = Web3Service.tronWeb.isAddress(attrs.disabledIfInvalidAddress);
+                console.log(attrs.disabledIfInvalidAddress, isAddressValid);
 
                 // Set form as invalid
                 if (!isAddressValid) {

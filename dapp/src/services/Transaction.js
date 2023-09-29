@@ -265,7 +265,6 @@
         * calls callback after receipt is retrieved.
         */
         factory.checkReceipts = function () {
-          console.log('Checking');
           // Add transactions without receipt to batch request
           var transactions = factory.get();
           var txHashes = Object.keys(transactions);

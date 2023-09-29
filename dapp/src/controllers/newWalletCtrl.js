@@ -20,7 +20,7 @@
       };
 
       $scope.deployWallet = function () {
-        Wallet.deployWithLimit(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e18'),
+        Wallet.deployWithLimit(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e6'),
           function (e, contract) {
             console.log('In function');
             if (e) {
@@ -44,7 +44,7 @@
       };
 
       $scope.deployOfflineWallet = function () {
-        Wallet.deployWithLimitOffline(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e18'),
+        Wallet.deployWithLimitOffline(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e6'),
         function (e, signed) {
           if (e) {
             Utils.dangerAlert(e);
@@ -57,7 +57,7 @@
       };
 
       $scope.deployFactoryWallet = function () {
-        Wallet.deployWithLimitFactory(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e18'),
+        Wallet.deployWithLimitFactory(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e6'),
           function (e, tx) {
             if (e) {
               Utils.dangerAlert(e);
@@ -83,7 +83,7 @@
       };
 
       $scope.deployFactoryWalletOffline = function () {
-        Wallet.deployWithLimitFactoryOffline(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e18'),
+        Wallet.deployWithLimitFactoryOffline(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e6'),
           function (e, signed) {
             if (e) {
               Utils.dangerAlert(e);

@@ -12,14 +12,14 @@
       };
 
       factory.update = function (abi, to, name) {
-        abiDecoder.addABI(abi);
+        console.log('updating');
+        console.log('updated');
         factory.saved[to] = { abi: abi, name: name};
 
         localStorage.setItem("abis", JSON.stringify(factory.saved));
       };
 
       factory.remove = function (to) {
-        abiDecoder.removeABI(factory.saved[to].abi);
         delete factory.saved[to];
         localStorage.setItem("abis", JSON.stringify(factory.saved));
       };

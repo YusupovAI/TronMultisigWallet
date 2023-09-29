@@ -229,7 +229,7 @@
         factory.updateAccounts = function (cb) {
           return factory.tronWeb.trx.getAccount().then((account) => {
             factory.account = account;
-            factory.coinbase = account.address;
+            factory.coinbase = factory.tronWeb.address.fromHex(account.address);
             cb(factory.account);
           });
         };

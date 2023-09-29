@@ -39,7 +39,10 @@
             if ($scope.transactionsMap[txKey].info && (!$scope.transactionsMap[txKey].decodedData || $scope.transactionsMap[txKey].decodedData.notDecoded || ($scope.transactionsMap[txKey].usedABI && (!savedABI || savedABI.abi )))) {
               if ($scope.transactionsMap[txKey].info.input !== "0x" && $scope.transactionsMap[txKey].info.input.data !== "0x0") {
                 // Decode data
-                var decoded = ABI.decode($scope.transactionsMap[txKey].info.input);
+                var decoded = ABI.decode(
+                  // Web3Service.tronWeb.address.fromHex($scope.transactionsMap[txKey].info.destination),
+                  $scope.transactionsMap[txKey].info.input,
+                );
                 $scope.transactionsMap[txKey].decodedData = decoded;
                 if (savedABI && savedABI.abi) {
                   $scope.transactionsMap[txKey].usedABI = true;

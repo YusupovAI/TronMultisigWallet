@@ -8,13 +8,13 @@
       Wallet
       .getLimit($scope.address, function (e, required) {
         if (required ) {
-          $scope.limit = required.div('1e18').toNumber();
+          $scope.limit = required.div('1e6').toNumber();
           $scope.$apply();
         }
       }).call();
 
       $scope.setLimit = function () {
-        Wallet.updateLimit($scope.address, new Web3().toBigNumber($scope.limit).mul('1e18'), {onlySimulate: false}, function (e, tx){
+        Wallet.updateLimit($scope.address, new Web3().toBigNumber($scope.limit).mul('1e6'), {onlySimulate: false}, function (e, tx){
           if (e) {
             Utils.dangerAlert(e);
           }
@@ -29,7 +29,7 @@
       };
 
       $scope.sign = function () {
-        Wallet.signLimit($scope.address, new Web3().toBigNumber($scope.limit).mul('1e18'), function (e, tx) {
+        Wallet.signLimit($scope.address, new Web3().toBigNumber($scope.limit).mul('1e6'), function (e, tx) {
           if (e) {
             Utils.dangerAlert(e);
           }
@@ -41,7 +41,7 @@
       };
 
       $scope.getNonce = function () {
-        var data = Wallet.getUpdateLimitData($scope.address, new Web3().toBigNumber($scope.limit).mul('1e18'));
+        var data = Wallet.getUpdateLimitData($scope.address, new Web3().toBigNumber($scope.limit).mul('1e6'));
         Wallet.getNonce($scope.address, $scope.address, "0x0", data, function (e, nonce) {
           // Open modal
           $uibModalInstance.close();

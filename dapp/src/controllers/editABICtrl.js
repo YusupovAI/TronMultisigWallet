@@ -45,7 +45,7 @@
             }
           }
           else {
-            ABI.update(parsedABI, to, $scope.name);
+            ABI.update(parsedABI.entrys, to, $scope.name);
           }
 
           $uibModalInstance.close();

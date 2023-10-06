@@ -37,6 +37,13 @@ npm install node-gyp
 npm install
 ```
 
+Building
+-------------
+```
+docker build . -t main
+docker run -p 5000:5000 main
+```
+
 Test
 -------------
 ### Run contract tests:

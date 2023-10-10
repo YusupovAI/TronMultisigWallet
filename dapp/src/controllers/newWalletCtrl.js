@@ -22,7 +22,6 @@
       $scope.deployWallet = function () {
         Wallet.deployWithLimit(Object.keys($scope.owners), $scope.confirmations, new Web3().toBigNumber($scope.limit).mul('1e6'),
           function (e, contract) {
-            console.log('In function');
             if (e) {
               Utils.dangerAlert(e);
             }
@@ -31,7 +30,13 @@
               // Execute transaction
               Transaction.add({txHash: contract.txid, callback: function (receipt) {
                 // Save wallet
-                Wallet.updateWallet({name: $scope.name, address: receipt.contract_address, owners: $scope.owners});
+                Wallet.updateWallet(
+                  {
+                    name: $scope.name,
+                    address: Web3Service.tronWeb.address.fromHex(receipt.contract_address),
+                    owners: $scope.owners,
+                  }
+                );
                 Utils.success("Wallet deployed");
                 Transaction.update(contract.txid, {multisig: receipt.contract_address});
                 Token.setDefaultTokens(receipt.contract_address);

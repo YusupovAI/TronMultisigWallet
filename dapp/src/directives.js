@@ -417,7 +417,7 @@
               return attrs.disabledIfInvalidAddress;
             },
               function () {
-                console.log('lul');
+                console.log(attrs);
                 isAddressValid = Web3Service.tronWeb.isAddress(attrs.disabledIfInvalidAddress);
                 console.log(attrs.disabledIfInvalidAddress, isAddressValid);
 

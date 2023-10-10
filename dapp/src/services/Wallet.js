@@ -558,6 +558,20 @@
         );
       };
 
+      wallet.withdraw = function (from, tx, cb) {
+        console.log('from: ', from);
+        var instance = tronWeb.contract(wallet.json.multiSigDailyLimit.abi, from);
+        instance.submitTransaction(
+          tx.to,
+          tx.value.toString(),
+          '0x',
+        ).send().then(function (result) {
+          cb(null, result);
+        }, function (e) {
+          cb(e);
+        })
+      }
+
       wallet.deployWithLimit = function (owners, requiredConfirmations, limit, cb) {
         Web3Service.tronWeb.transactionBuilder.createSmartContract({
           abi: wallet.json.multiSigDailyLimit.abi,
@@ -989,35 +1003,44 @@
         });
       };
 
+      wallet.encodeParams = function (abi, name, args) {
+        var foundAbi = null;
+        for (let i = 0; i < abi.length; ++i) {
+          if (abi[i].type.toLowerCase() == 'function' && abi[i].name == name) {
+            foundAbi = abi[i];
+          }
+        }
+        var types = foundAbi.inputs.map((x) => x.type);
+        var bytes = Web3Service.tronWeb.utils.ethersUtils.toUtf8Bytes(
+          foundAbi.name + '(' + types.join(',') + ')'
+        );
+        var selector = Web3Service.tronWeb.utils.ethersUtils.keccak256(bytes).slice(0, 10);
+        return selector + Web3Service.tronWeb.utils.abi.encodeParamsV2ByABI(foundAbi, args).slice(2);
+      };
+
       /**
       * Change daily limit
       **/
       wallet.updateLimit = function (address, limit, options, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
-        var data = instance.changeDailyLimit.getData(
-          limit,
-          cb
-        );
+        var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
+
         // Get nonce
         wallet.getTransactionCount(address, true, true, function (e, count) {
           if (e) {
             cb(e);
           }
           else {
-            Web3Service.sendTransaction(
-              instance.submitTransaction,
-              [
-                address,
-                "0x0",
-                data,
-                count,
-                wallet.txDefaults({gas: 300000})
-              ],
-              options,
-              cb
-            );
+            instance.submitTransaction(
+              address,
+              '0x0',
+              wallet.encodeParams(wallet.json.multiSigDailyLimit.abi, 'changeDailyLimit', [limit.toString()]),
+            ).send().then(function (res) {
+              cb(null, res);
+            }, function (e) {
+              cb(e);
+            });
           }
-        }).call();
+        });
       };
 
       /**
@@ -1086,7 +1109,6 @@
       * Execute multisig transaction, must be already signed by required owners
       */
       wallet.executeTransaction = function (address, txId, options, cb) {
-        var instance = Web3Service.web3.eth.contract(wallet.json.multiSigDailyLimit.abi).at(address);
         var instance = Web3Service.tronWeb.contract(wallet.json.multiSigDailyLimit.abi, address);
         instance.executeTransaction(txId.toString()).send({
           value: 0,

@@ -297,9 +297,9 @@
         };
 
         $scope.getParam = function (tx) {
-          console.log('getting');
           if (tx.data && tx.data.length > 3) {
             var method = tx.data.slice(2, 10);
+            console.log(method);
             var owner = "0x1";
             if (tx.data && tx.data.length > 12) {
               var tmp = new Web3().toBigNumber("0x" + tx.data.slice(11));
@@ -350,7 +350,7 @@
               default:
                 // Check abis in cache
                 var abis = ABI.get();
-                var decoded = ABI.decode(tx.data);
+                var decoded = ABI.decode(tx.to, tx.data);
 
                 if (abis[tx.to] && abis[tx.to].abi) {
                   decoded.usedABI = true;

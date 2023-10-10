@@ -20,13 +20,9 @@
         Object.assign(tx, $scope.tx);
         tx.value = new Web3().toBigNumber($scope.tx.value).mul('1e6');
 
-        Wallet.submitTransaction(
+        Wallet.withdraw(
           $scope.wallet.address,
           tx,
-          null,
-          null,
-          null,
-          {onlySimulate: false},
           function (e, tx) {
             if (e) {
               Utils.dangerAlert(e);

@@ -2504,7 +2504,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "      <input type=\"text\" class=\"form-control\" ng-model=\"name\" name=\"name\" />\n" +
     "    </div>\n" +
     "    <div class=\"form-group\">\n" +
-    "      <label for=\"value\">Amount (ETH)</label>\n" +
+    "      <label for=\"value\">Amount (TRX)</label>\n" +
     "      <input id=\"value\" type=\"number\" class=\"form-control\" ng-model=\"tx.value\" min=\"0\" max=\"999999999999999\" ng-required=\"!abi\">\n" +
     "    </div>\n" +
     "    <div class=\"form-group\">\n" +
@@ -2516,11 +2516,11 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "      <select id=\"method\" ng-model=\"method\" ng-options=\"method.name for method in methods track by method.index\"\n" +
     "       ng-required=\"tx.abi\" class=\"form-control\" ng-change=\"setMethod()\" ng-disabled=\"!abiArray\" ></select>\n" +
     "    </div>\n" +
-    "    <div class=\"form-group\" ng-show=\"method && abiArray[method.index].inputs.length > 0\">\n" +
+    "    <div class=\"form-group\" ng-show=\"method && method.inputs\">\n" +
     "      <h3>\n" +
     "        Parameters\n" +
     "      </h3>\n" +
-    "      <div class=\"form-group\" ng-repeat=\"param in abiArray[method.index].inputs\" >\n" +
+    "      <div class=\"form-group\" ng-repeat=\"param in method.inputs\" >\n" +
     "        <div ng-switch on=\"param.type\">\n" +
     "          <label ng-attr-for=\"{{ 'value-' + $index }}\">{{param.name}}</label>\n" +
     "          <input ng-attr-id=\"{{ 'value-' + $index }}\" ng-switch-default type=\"text\" class=\"form-control\" ng-model=\"params[$index]\">\n" +
@@ -2531,7 +2531,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "  <div class=\"modal-footer\">\n" +
     "    <button type=\"button\" ng-click=\"send()\" class=\"btn btn-default\" show-hide-by-connectivity=\"online\"\n" +
     "      disabled-if-invalid-address=\"{{tx.to}}\"\n" +
-    "      ng-disabled=\"form.$invalid || abiArray[method.index].constant\">\n" +
+    "      ng-disabled=\"form.$invalid\">\n" +
     "      Send transaction\n" +
     "    </button>\n" +
     "    <button type=\"button\" ng-click=\"simulate()\" class=\"btn btn-default\" show-hide-by-connectivity=\"online\"\n" +
@@ -2820,7 +2820,7 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "      <input type=\"text\" class=\"form-control\" ng-model=\"name\" name=\"name\" />\n" +
     "    </div>\n" +
     "    <div class=\"form-group\">\n" +
-    "      <label for=\"value\">Amount (ETH)</label>\n" +
+    "      <label for=\"value\">Amount (TRX)</label>\n" +
     "      <input id=\"value\" type=\"number\" class=\"form-control\" ng-model=\"tx.value\" min=\"0\" max=\"999999999999999\" ng-required=\"!abi\">\n" +
     "    </div>\n" +
     "    <div class=\"form-group\">\n" +
@@ -2833,11 +2833,12 @@ angular.module('multiSigWeb').run(['$templateCache', function($templateCache) {
     "       ng-options=\"method.name for method in methods track by method.index\"\n" +
     "       ng-required=\"tx.abi\" class=\"form-control\" ng-change=\"setMethod()\" ng-disabled=\"!abiArray\" ></select>\n" +
     "    </div>\n" +
-    "    <div class=\"form-group\" ng-show=\"method && abiArray[method.index].inputs.length > 0\">\n" +
+    "    <!-- && abiArray[method.index].inputs.length > 0 -->\n" +
+    "    <div class=\"form-group\" ng-show=\"method && method.inputs\">\n" +
     "      <h3>\n" +
     "        Parameters\n" +
     "      </h3>\n" +
-    "      <div class=\"form-group\" ng-repeat=\"param in abiArray[method.index].inputs\" >\n" +
+    "      <div class=\"form-group\" ng-repeat=\"param in method.inputs\" >\n" +
     "        <div ng-switch on=\"param.type\">\n" +
     "          <label ng-attr-for=\"{{ 'value-' + $index }}\">{{param.name}}</label>\n" +
     "          <input ng-attr-id=\"{{ 'value-' + $index }}\" ng-switch-default type=\"text\" class=\"form-control\" ng-model=\"params[$index]\">\n" +

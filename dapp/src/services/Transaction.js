@@ -38,6 +38,7 @@
             factory.callbacks[tx.txHash] = tx.callback;
           }
           tx.date = new Date();
+          console.log('Transaction: ', tx);
           localStorage.setItem("transactions", JSON.stringify(transactions));
           factory.updates++;
           try {
@@ -97,30 +98,33 @@
         /**
         * Send transaction, signed by wallet service provider
         */
-        factory.send = function (tx, cb) {
-          Web3Service.sendTransaction(
-            Web3Service.web3.eth,
-            [
-              tx
-            ],
-            { onlySimulate: false },
-            function (e, txHash) {
-              if (e) {
-                cb(e);
-              }
-              else {
-                factory.add(
-                  {
-                    txHash: txHash,
+        factory.sendTrx = function (tx, cb) {
+          Web3Service.tronWeb.transactionBuilder.sendTrx(
+            tx.to,
+            tx.value.toString(),
+            tx.from
+          ).then(function (transaction) {
+            Web3Service.tronWeb.trx.sign(transaction).then(function (signed) {
+              Web3Service.tronWeb.trx.sendRawTransaction(signed).then(
+                function (result) {
+                  factory.add({
+                    txHash: result.transaction.txID,
                     callback: function (receipt) {
-                      cb(null, receipt);
+                      cb(null ,receipt);
                     }
-                  }
-                );
-                cb(null, txHash);
-              }
-            }
-          );
+                  })
+                },
+                function (e) {
+                  console.log('kek: ', e);
+                  cb(e);
+                },
+              );
+            }, function (e) {
+              cb(e);
+            });
+          }, function (e) {
+            cb(e);
+          });
         };
 
         factory.simulate = function (tx, cb) {

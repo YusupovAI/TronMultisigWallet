@@ -40,7 +40,7 @@
               if ($scope.transactionsMap[txKey].info.input !== "0x" && $scope.transactionsMap[txKey].info.input.data !== "0x0") {
                 // Decode data
                 var decoded = ABI.decode(
-                  // Web3Service.tronWeb.address.fromHex($scope.transactionsMap[txKey].info.destination),
+                  Web3Service.tronWeb.address.fromHex($scope.transactionsMap[txKey].info.destination),
                   $scope.transactionsMap[txKey].info.input,
                 );
                 $scope.transactionsMap[txKey].decodedData = decoded;

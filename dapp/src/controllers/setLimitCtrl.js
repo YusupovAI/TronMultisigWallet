@@ -8,10 +8,10 @@
       Wallet
       .getLimit($scope.address, function (e, required) {
         if (required ) {
-          $scope.limit = required.div('1e6').toNumber();
+          $scope.limit = required.div('1000000').toNumber();
           $scope.$apply();
         }
-      }).call();
+      });
 
       $scope.setLimit = function () {
         Wallet.updateLimit($scope.address, new Web3().toBigNumber($scope.limit).mul('1e6'), {onlySimulate: false}, function (e, tx){

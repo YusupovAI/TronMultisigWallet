@@ -6,13 +6,11 @@
       $scope.wallet = wallet;
       $scope.amount = 10;
       $scope.deposit = function () {        
-        Transaction.send(
+        Transaction.sendTrx(
           {
             to: $scope.wallet.address,
             from: Web3Service.coinbase,
-            value: new ethereumjs.BN(new Web3().toWei($scope.amount)),
-            gas: 50000,
-            gasPrice: Wallet.txParams.gasPrice
+            value: new Web3().toBigNumber($scope.amount).mul('1e6'),
           },
           function (e, tx) {
             if (e) {

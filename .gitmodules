@@ -1,0 +1,3 @@
+[submodule "TronMultisigContract"]
+	path = TronMultisigContract
+	url = git@github.com:zkBob/TronMultisigContract.git

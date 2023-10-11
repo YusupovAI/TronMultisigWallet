@@ -44,6 +44,11 @@ docker build . -t main
 docker run -p 5000:5000 main
 ```
 
+Recompiling
+------------
+If you want to recompile contracts, you should get bytecode from the https://github.com/zkBob/TronMultisigContract which is presented as a submodule and paste needed bytecode to
+https://github.com/zkBob/TronMultisigWallet/blob/develop/dapp/src/abi.js
+
 Test
 -------------
 ### Run contract tests:

@@ -32,8 +32,8 @@
           }
           console.log('lul');
           var types = [];
-          if (abi[i].inputs.length >0 ) {
-            var types = abi[i].inputs.map((x) => x.type);
+          if (abi[i].inputs) {
+             types = abi[i].inputs.map((x) => x.type);
           }
           var bytes = Web3Service.tronWeb.utils.ethersUtils.toUtf8Bytes(
             abi[i].name + '(' + types.join(',') + ')'
